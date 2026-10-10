@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>扫码连接 | AirMouse</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #0b0d0c;
+            --panel: #151917;
+            --panel-strong: #1b211e;
+            --line: #2a322e;
+            --text: #f5f7f6;
+            --muted: #8d9993;
+            --accent: #59e391;
+            --accent-dark: #10261a;
+            --warning: #f5c451;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at 15% 0%, rgba(89, 227, 145, 0.09), transparent 32rem),
+                var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+        }
+
+        .page {
+            width: min(1380px, 100%);
+            margin: 0 auto;
+            padding: 38px 42px 56px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-mark {
+            width: 46px;
+            height: 46px;
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(89, 227, 145, 0.35);
+            border-radius: 12px;
+            background: var(--accent-dark);
+            color: var(--accent);
+            font-size: 23px;
+            font-weight: 800;
+        }
+
+        h1,
+        h2,
+        p {
+            margin-top: 0;
+        }
+
+        h1 {
+            margin-bottom: 3px;
+            font-size: 25px;
+            line-height: 1.15;
+        }
+
+        .subtitle,
+        .network-meta,
+        .hint,
+        .warning,
+        .footer-note {
+            color: var(--muted);
+        }
+
+        .subtitle {
+            margin: 0;
+            font-size: 13px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 9px 13px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.025);
+            color: #bcc5c0;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 12px rgba(89, 227, 145, 0.8);
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(520px, 1.15fr) minmax(310px, 0.85fr);
+            gap: 22px;
+            align-items: start;
+        }
+
+        .panel {
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: linear-gradient(145deg, var(--panel-strong), var(--panel));
+        }
+
+        .recommended {
+            grid-row: span 3;
+            padding: 28px;
+        }
+
+        .panel-heading,
+        .alternative-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .panel-heading {
+            margin-bottom: 24px;
+        }
+
+        .panel-heading h2,
+        .alternative-heading h2 {
+            margin: 0;
+            font-size: 17px;
+        }
+
+        .badge {
+            padding: 6px 10px;
+            border: 1px solid rgba(89, 227, 145, 0.35);
+            border-radius: 999px;
+            background: var(--accent-dark);
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .recommended-body {
+            display: grid;
+            grid-template-columns: minmax(280px, 390px) minmax(220px, 1fr);
+            gap: 28px;
+            align-items: center;
+        }
+
+        .qr-shell {
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            background: #fff;
+            box-shadow: 0 18px 55px rgba(0, 0, 0, 0.32);
+        }
+
+        .qr-target {
+            width: 100%;
+        }
+
+        .qr-target canvas,
+        .qr-target img {
+            display: block;
+            width: 100% !important;
+            height: auto !important;
+            image-rendering: pixelated;
+        }
+
+        .qr-error {
+            min-height: 260px;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background: #161a18;
+            color: #ffb5b5;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .network-label {
+            margin-bottom: 8px;
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .network-name {
+            margin-bottom: 5px;
+            font-size: 19px;
+            font-weight: 700;
+            word-break: break-word;
+        }
+
+        .network-meta {
+            margin-bottom: 18px;
+            font-size: 13px;
+        }
+
+        .address {
+            display: inline-block;
+            max-width: 100%;
+            margin-bottom: 18px;
+            color: #dce3df;
+            font-family: Consolas, Monaco, monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+            text-decoration: none;
+        }
+
+        .address:hover {
+            color: var(--accent);
+        }
+
+        .hint {
+            margin-bottom: 0;
+            font-size: 13px;
+            line-height: 1.65;
+        }
+
+        .alternatives {
+            padding: 22px;
+        }
+
+        .alternative-heading {
+            margin-bottom: 15px;
+        }
+
+        .alternative-heading span {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .alternative-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
+            gap: 12px;
+        }
+
+        .alternative-card {
+            min-width: 0;
+            padding: 14px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.018);
+        }
+
+        .mini-qr {
+            width: 116px;
+            margin: 0 auto 13px;
+            padding: 8px;
+            border-radius: 10px;
+            background: #fff;
+        }
+
+        .mini-qr .qr-target {
+            width: 100%;
+        }
+
+        .mini-qr canvas,
+        .mini-qr img {
+            display: block;
+            width: 100% !important;
+            height: auto !important;
+            image-rendering: pixelated;
+        }
+
+        .mini-qr .qr-error {
+            min-height: 116px;
+            padding: 8px;
+        }
+
+        .alternative-kind {
+            margin-bottom: 5px;
+            color: var(--accent);
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .alternative-name {
+            margin-bottom: 5px;
+            overflow: hidden;
+            font-size: 13px;
+            font-weight: 700;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .alternative-url {
+            display: block;
+            color: var(--muted);
+            font-family: Consolas, Monaco, monospace;
+            font-size: 10px;
+            line-height: 1.45;
+            overflow-wrap: anywhere;
+            text-decoration: none;
+        }
+
+        .alternative-url:hover {
+            color: var(--accent);
+        }
+
+        .warning {
+            padding: 14px 16px;
+            border: 1px solid rgba(245, 196, 81, 0.25);
+            border-radius: 14px;
+            background: rgba(245, 196, 81, 0.055);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .warning strong {
+            color: var(--warning);
+        }
+
+        .empty {
+            grid-column: 1 / -1;
+            padding: 64px 24px;
+            text-align: center;
+        }
+
+        .empty h2 {
+            margin-bottom: 8px;
+            font-size: 20px;
+        }
+
+        .empty p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .footer-note {
+            margin: 18px 0 0;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        @media (max-width: 1000px) {
+            .page {
+                padding: 28px 22px 42px;
+            }
+
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .recommended {
+                grid-row: auto;
+            }
+        }
+
+        @media (max-width: 680px) {
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .recommended,
+            .alternatives {
+                padding: 18px;
+            }
+
+            .recommended-body {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .qr-shell {
+                max-width: 440px;
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <header class="topbar">
+            <div class="brand">
+                <div class="brand-mark">A</div>
+                <div>
+                    <h1>扫码连接 AirMouse</h1>
+                    <p class="subtitle">让手机和电脑处在同一局域网，然后扫描下方二维码</p>
+                </div>
+            </div>
+            <div class="status">
+                <span class="status-dot"></span>
+                <span>已检测到 {{ target_count }} 个可用地址</span>
+            </div>
+        </header>
+
+        <div class="layout">
+            {% if recommended %}
+            <section class="panel recommended">
+                <div class="panel-heading">
+                    <h2>推荐连接地址</h2>
+                    <span class="badge">推荐</span>
+                </div>
+
+                <div class="recommended-body">
+                    <div class="qr-shell">
+                        <div class="qr-target" data-url="{{ recommended.url }}" data-size="512"></div>
+                    </div>
+
+                    <div>
+                        <div class="network-label">{{ recommended.kind }}</div>
+                        <div class="network-name">{{ recommended.interface }}</div>
+                        <div class="network-meta">{{ recommended.ip }}</div>
+                        <a class="address" href="{{ recommended.url }}" target="_blank" rel="noreferrer">{{ recommended.url }}</a>
+                        <p class="hint">
+                            如果当前手机和电脑连接的是同一个 Wi-Fi，优先扫描这个二维码。首次打开时浏览器可能提示证书风险，请选择继续访问。
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            {% if alternatives %}
+            <section class="panel alternatives">
+                <div class="alternative-heading">
+                    <h2>其他可用地址</h2>
+                    <span>{{ alternatives | length }} 个</span>
+                </div>
+                <div class="alternative-grid">
+                    {% for target in alternatives %}
+                    <article class="alternative-card">
+                        <div class="mini-qr">
+                            <div class="qr-target" data-url="{{ target.url }}" data-size="256"></div>
+                        </div>
+                        <div class="alternative-kind">{{ target.kind }}</div>
+                        <div class="alternative-name" title="{{ target.interface }}">{{ target.interface }}</div>
+                        <a class="alternative-url" href="{{ target.url }}" target="_blank" rel="noreferrer">{{ target.url }}</a>
+                    </article>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+            <aside class="warning">
+                <strong>连接提示：</strong>推荐地址来自当前优先级最高的可用网络接口。若扫码后无法打开，请确认手机未启用移动数据代理，并尝试“其他可用地址”中的二维码。
+            </aside>
+            {% else %}
+            <section class="panel empty">
+                <h2>未检测到局域网地址</h2>
+                <p>请先连接 Wi-Fi 或网线，然后刷新此页面。</p>
+            </section>
+            {% endif %}
+        </div>
+
+        <p class="footer-note">AirMouse Remote Server</p>
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        (() => {
+            const targets = document.querySelectorAll('.qr-target');
+
+            function showError(element) {
+                element.innerHTML = '<div class="qr-error">二维码库加载失败，请刷新页面或直接打开下方地址</div>';
+            }
+
+            if (typeof QRCode === 'undefined') {
+                targets.forEach(showError);
+                return;
+            }
+
+            targets.forEach((element) => {
+                const size = Number(element.dataset.size) || 256;
+                try {
+                    new QRCode(element, {
+                        text: element.dataset.url,
+                        width: size,
+                        height: size,
+                        colorDark: '#0b0d0c',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                } catch (error) {
+                    showError(element);
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

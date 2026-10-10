@@ -2,6 +2,9 @@ import platform
 import os
 import threading
 import time
+import ssl
+import webbrowser
+from urllib.request import urlopen
 
 # macOS 隐藏 Dock 图标逻辑
 if platform.system() == 'Darwin':
@@ -36,6 +39,27 @@ def status_thread():
         time.sleep(1)
 
 threading.Thread(target=status_thread, daemon=True).start()
+
+
+def open_connect_page_when_ready(port):
+    if os.environ.get('AIRMOUSE_NO_BROWSER') == '1':
+        return
+
+    health_url = f'https://127.0.0.1:{port}/healthz'
+    page_url = f'https://127.0.0.1:{port}/connect'
+    context = ssl._create_unverified_context()
+
+    for _ in range(80):
+        try:
+            with urlopen(health_url, timeout=1, context=context) as response:
+                if response.status == 200:
+                    break
+        except Exception:
+            time.sleep(0.25)
+    else:
+        return
+
+    webbrowser.open(page_url, new=2)
 
 # --- SocketIO 事件绑定 ---
 
@@ -113,6 +137,7 @@ if __name__ == '__main__':
     print("🚀 Remote Pro Server 已启动！")
     print(f"🏠 当前系统: {platform.system()}")
     print("📱 请在浏览器访问以下地址:")
+    print(f"🖥️  本机扫码页: https://127.0.0.1:{port}/connect")
     
     for interface, ip in ips:
         tag = ""
@@ -122,10 +147,12 @@ if __name__ == '__main__':
     
     print("═"*60 + "\n")
 
+    threading.Thread(target=open_connect_page_when_ready, args=(port,), daemon=True).start()
+
     socketio.run(
         app, 
         host='0.0.0.0', 
-        port=5888, 
+        port=port, 
         ssl_context=('cert.pem', 'key.pem'),
         allow_unsafe_werkzeug=True # 确保稳定性
     )
